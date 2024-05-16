@@ -5,6 +5,7 @@ pub enum Resource {
     Energy,
     Ore,
     PlaceOfInterest,
+    Empty,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
