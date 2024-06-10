@@ -1,4 +1,4 @@
-use rand::Rng;
+
 use rand::SeedableRng;
 use serde::{Deserialize, Serialize};
 use noise::{NoiseFn, Perlin};
@@ -29,6 +29,8 @@ impl Map {
         let mut rand = rand::rngs::StdRng::seed_from_u64(seed);
         let mut tiles = vec![vec![Tile::new(false, false, None); width as usize]; height as usize];
 
+        let perlin = Perlin::new(1);
+
         for x in 0..width {
             tiles[0][x].has_obstacle = true;
             tiles[height - 1][x].has_obstacle = true;
@@ -41,7 +43,6 @@ impl Map {
 
         for y in 0..height {
             for x in 0..width {
-                let perlin = Perlin::new(1);
                 let perlin_noise = perlin.get([x as f64 / width as f64, y as f64 / height as f64]);
                 if perlin_noise > 0.5 {
                     tiles[y][x].has_obstacle = true;
@@ -50,16 +51,11 @@ impl Map {
             }
         }
 
+        // Randomly distribute resources
         for y in 1..height - 1 {
             for x in 1..width - 1 {
                 if !tiles[y][x].has_obstacle {
-                    let current_tile_resource = match rand.gen_range(0..4) {
-                        0 => Some(Resource::Energy),
-                        1 => Some(Resource::Ore),
-                        2 => Some(Resource::PlaceOfInterest),
-                        _ => Some(Resource::Empty),
-                    };
-                    tiles[y][x].resource = current_tile_resource;
+                    tiles[y][x].resource = Some(Resource::random_resource(&mut rand));
                 }
             }
         }
@@ -67,9 +63,11 @@ impl Map {
     }
 
     pub fn display_map(&self) {
+        let mut output = String::new();
+
         for row in &self.tiles {
             for tile in row {
-                let symbole = if tile.has_obstacle {
+                let content = if tile.has_obstacle {
                     " 🚧 " 
                 } else {
                     match tile.resource {
@@ -80,10 +78,11 @@ impl Map {
                         None => " - ",
                     }
                 };
-                print!("{}", symbole);
+                output.push_str(content);
             }
-            println!();
+            output.push('\n');
         }
+        print!("{}", output);
     }
 
     pub fn check_bounds(&self, x: usize, y: usize) -> bool {
