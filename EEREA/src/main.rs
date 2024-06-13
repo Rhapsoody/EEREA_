@@ -1,3 +1,6 @@
+use eerea::map::Map;
+
 fn main() {
-    println!("Hello, world!");
+    let map = Map::new(15, 15, 2);
+    map.display_map();
 }
