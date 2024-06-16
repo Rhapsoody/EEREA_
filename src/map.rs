@@ -1,12 +1,7 @@
-
-use rand::SeedableRng;
+use rand::{Rng, SeedableRng};
 use serde::{Deserialize, Serialize};
 use noise::{NoiseFn, Perlin};
-
-
-use crate::tile::Tile;
-use crate::tile::Resource;
-
+use crate::tile::{Tile, TileContent, Resource};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Map {
@@ -27,38 +22,37 @@ impl Map {
 
     pub fn generate_tiles(width: usize, height: usize, seed: u64) -> Vec<Vec<Tile>> {
         let mut rand = rand::rngs::StdRng::seed_from_u64(seed);
-        let mut tiles = vec![vec![Tile::new(false, false, None); width as usize]; height as usize];
+        let mut tiles = vec![vec![Tile::new(false, TileContent::Empty); width]; height];
 
         let perlin = Perlin::new(1);
 
+        // Bordures comme obstacles
         for x in 0..width {
-            tiles[0][x].has_obstacle = true;
-            tiles[height - 1][x].has_obstacle = true;
+            tiles[0][x] = Tile::new(false, TileContent::Obstacle);
+            tiles[height - 1][x] = Tile::new(false, TileContent::Obstacle);
         }
 
         for y in 0..height {
-            tiles[y][0].has_obstacle = true;
-            tiles[y][width - 1].has_obstacle = true;
+            tiles[y][0] = Tile::new(false, TileContent::Obstacle);
+            tiles[y][width - 1] = Tile::new(false, TileContent::Obstacle);
         }
 
-        for y in 0..height {
-            for x in 0..width {
-                let perlin_noise = perlin.get([x as f64 / width as f64, y as f64 / height as f64]);
-                if perlin_noise > 0.5 {
-                    tiles[y][x].has_obstacle = true;
-                }
-                    
-            }
-        }
-
-        // Randomly distribute resources
+        // Génération aléatoire des obstacles et des ressources
         for y in 1..height - 1 {
             for x in 1..width - 1 {
-                if !tiles[y][x].has_obstacle {
-                    tiles[y][x].resource = Some(Resource::random_resource(&mut rand));
+                let perlin_noise = perlin.get([x as f64 / width as f64, y as f64 / height as f64]);
+                if perlin_noise > 0.5 {
+                    tiles[y][x] = Tile::new(false, TileContent::Obstacle);
+                } else {
+                    let resource_probability: f64 = rand.gen();
+                    if resource_probability < 0.3 {
+                        let resource = Resource::random_resource(&mut rand);
+                        tiles[y][x] = Tile::new(false, TileContent::Resource(resource));
+                    }
                 }
             }
         }
+
         tiles
     }
 
@@ -67,16 +61,12 @@ impl Map {
 
         for row in &self.tiles {
             for tile in row {
-                let content = if tile.has_obstacle {
-                    " 🚧 " 
-                } else {
-                    match tile.resource {
-                        Some(Resource::Energy) => " 🔥 ", 
-                        Some(Resource::Ore) => " 💎 ", 
-                        Some(Resource::PlaceOfInterest) => " 🛰️ ", 
-                        Some(Resource::Empty) => "     ",
-                        None => " - ",
-                    }
+                let content = match tile.content {
+                    TileContent::Obstacle => " 🚧 ",
+                    TileContent::Resource(Resource::Energy) => " 🔥 ",
+                    TileContent::Resource(Resource::Ore) => " 💎 ",
+                    TileContent::Resource(Resource::PlaceOfInterest) => " 🛰️ ",
+                    TileContent::Empty => " - ",
                 };
                 output.push_str(content);
             }
@@ -93,12 +83,12 @@ impl Map {
         if !self.check_bounds(x, y) {
             return false; 
         }
-        !self.tiles[y][x].has_obstacle && self.tiles[y][x].resource.is_none()
+        matches!(self.tiles[y][x].content, TileContent::Empty)
     }
 
     pub fn throw_resource_at(&mut self, x: usize, y: usize, resource: Resource) {
         if let Some(tile) = self.tile_at_mut(x, y) {
-            tile.resource = Some(resource);
+            tile.content = TileContent::Resource(resource);
         }
     }
 
@@ -120,12 +110,14 @@ impl Map {
 
     pub fn retrieve_resource_at(&mut self, x: usize, y: usize) -> Option<Resource> {
         if let Some(tile) = self.tile_at_mut(x, y) {
-            let resource = tile.resource;
-            tile.resource = None;
-            resource
+            if let TileContent::Resource(resource) = tile.content {
+                tile.content = TileContent::Empty;
+                Some(resource)
+            } else {
+                None
+            }
         } else {
             None
         }
-    }    
-
+    }
 }
