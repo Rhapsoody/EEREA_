@@ -1,8 +1,6 @@
-use eerea::robot::{base::RobotActions, Robot, RobotBehavior, RobotSpecialization};
-
+use eerea::map::Map;
 
 fn main() {
-    let robot = Robot::new(1, RobotBehavior::Explore, RobotSpecialization::Driller);
-
-    robot.return_to_station();
+    let map = Map::new(15, 15, 2);
+    map.display_map();
 }
