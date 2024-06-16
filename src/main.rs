@@ -72,7 +72,7 @@ fn main() -> GameResult<()> {
     let (mut ctx, event_loop) = ContextBuilder::new("map_game", "Author")
         .add_resource_path(resource_dir)
         .window_setup(ggez::conf::WindowSetup::default().title("EEREA Game :)"))
-        .window_mode(ggez::conf::WindowMode::default().dimensions(800.0, 800.0))
+        .window_mode(ggez::conf::WindowMode::default().dimensions(900.0, 900.0))
         .build()?;
 
     let game = MapMainState::new(&mut ctx)?;
