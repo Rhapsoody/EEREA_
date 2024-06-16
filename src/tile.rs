@@ -1,39 +1,42 @@
 use serde::{Deserialize, Serialize};
 use rand::Rng;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub enum Resource {
     Energy,
     Ore,
     PlaceOfInterest,
-    Empty,
 }
 
 impl Resource {
     // Generate a random resource using the provided RNG
     pub fn random_resource<R: Rng>(rng: &mut R) -> Self {
-        match rng.gen_range(0..4) {
+        match rng.gen_range(0..3) {
             0 => Resource::Energy,
             1 => Resource::Ore,
-            2 => Resource::PlaceOfInterest,
-            _ => Resource::Empty,
+            _ => Resource::PlaceOfInterest,
         }
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct Tile{
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+pub enum TileContent {
+    Empty,
+    Obstacle,
+    Resource(Resource),
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+pub struct Tile {
     pub explored: bool,
-    pub has_obstacle: bool,
-    pub resource: Option<Resource>,
+    pub content: TileContent,
 }
 
 impl Tile {
-    pub fn new(explored: bool, has_obstacle: bool, resource: Option<Resource>) -> Self {
+    pub fn new(explored: bool, content: TileContent) -> Self {
         Tile {
             explored,
-            has_obstacle,
-            resource,
+            content,
         }
     }
 }
