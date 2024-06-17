@@ -1,5 +1,6 @@
 pub mod tile;
 pub mod map;
+pub mod robot;
 
 #[cfg(tests)]
 mod tests {
