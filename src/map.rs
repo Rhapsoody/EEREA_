@@ -37,7 +37,7 @@ impl Map {
             tiles[y][width - 1] = Tile::new(false, TileContent::Obstacle);
         }
 
-        // Génération aléatoire des obstacles et des ressources
+        
         for y in 1..height - 1 {
             for x in 1..width - 1 {
                 let perlin_noise = perlin.get([x as f64 / 15.0 as f64, y as f64 / 12.0 as f64]);

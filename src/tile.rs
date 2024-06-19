@@ -1,3 +1,5 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
 use serde::{Deserialize, Serialize};
 use rand::Rng;
 
@@ -9,7 +11,7 @@ pub enum Resource {
 }
 
 impl Resource {
-    // Generate a random resource using the provided RNG
+    // on va generer des ressources aleatoirement hop
     pub fn random_resource<R: Rng>(rng: &mut R) -> Self {
         match rng.gen_range(0..3) {
             0 => Resource::Energy,
@@ -30,6 +32,7 @@ pub enum TileContent {
 pub struct Tile {
     pub explored: bool,
     pub content: TileContent,
+    pub timestamp: u64,
 }
 
 impl Tile {
@@ -37,6 +40,7 @@ impl Tile {
         Tile {
             explored,
             content,
+            timestamp: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs(),
         }
     }
 }

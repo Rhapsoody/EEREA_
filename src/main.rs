@@ -1,5 +1,6 @@
 use eerea::map::Map;
-use eerea::robot::{Behavior, Module, Robot};
+use eerea::robot::{Behavior, Module};
+use eerea::station::Station;
 use eerea::tile::{TileContent, Resource};
 
 use ggez::event::{self};
@@ -11,14 +12,14 @@ use std::path;
 
 struct MapMainState {
     map: Map,
-    robots: Vec<Robot>,
+    station: Station,
     obstacle_image: Image,
     ore_image: Image,
     energy_image: Image,
     place_of_interest_image: Image,
     empty_image: Image,
     robot_image: Image,
-    station_position: (usize, usize),
+    station_image: Image,
 }
 
 impl MapMainState {
@@ -30,37 +31,56 @@ impl MapMainState {
         let place_of_interest_image = Image::new(ctx, "/scientific_place.png")?;
         let empty_image = Image::new(ctx, "/empty.png")?;
         let robot_image = Image::new(ctx, "/robot.png")?;
+        let station_image = Image::new(ctx, "/station.png")?;
 
-        let robot1 = Robot::new(1, (5, 5), 100, Module::Imaging, Behavior::Exploration);
-
-        let station_position = (0, 0);
+        let station = Station::new((0, 0));
         
-        let state = MapMainState { map, obstacle_image, 
+        let state = MapMainState { 
+            map, 
+            station ,
+            obstacle_image, 
             ore_image, 
             energy_image, 
             place_of_interest_image, 
-            empty_image, robot_image, 
-            robots: vec![robot1], 
-            station_position};
+            empty_image, 
+            robot_image, 
+            station_image,
+        };
 
-        
         Ok(state)
+    }
+
+    fn update_robots(&mut self) {
+        for robot in &mut self.station.robots {
+            robot.perform_action(&mut self.map, self.station.position);
+            if robot.position == self.station.position {
+                self.station.collect_data(robot, &self.map);
+                robot.refill_energy();
+            }
+        }
+    }
+
+    fn create_robot_if_needed(&mut self) {
+        if self.station.energy >= 100 {
+            let new_robot = self.station.create_robot(self.station.robots.len() + 1, self.station.position, Module::Imaging, Behavior::Exploration);
+            self.station.energy -= 100;
+            self.station.robots.push(new_robot);
+        }
     }
 }
 
 impl event::EventHandler<ggez::GameError> for MapMainState {
     fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
-        for robot in &mut self.robots {
-            robot.perform_action(&mut self.map);
-            println!("Robot {} moved to position {:?}", robot.id, robot.position);
-        }
+        self.update_robots();
+        self.create_robot_if_needed();
+
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         graphics::clear(ctx, Color::BLACK);
 
-        // Dessiner la carte
+        // carte 
         let tile_size = 32.0;
         for (y, row) in self.map.tiles.iter().enumerate() {
             for (x, tile) in row.iter().enumerate() {
@@ -77,11 +97,20 @@ impl event::EventHandler<ggez::GameError> for MapMainState {
             }
         }
 
-        
-        for robot in &self.robots {
-            let draw_params = DrawParam::default()
-                .dest([robot.position.0 as f32 * tile_size, robot.position.1 as f32 * tile_size]);
+        // station
+        let station_draw_params = DrawParam::default().dest([self.station.position.0 as f32 * tile_size, self.station.position.1 as f32 * tile_size]);
+        graphics::draw(ctx, &self.station_image, station_draw_params)?;
+
+        //robots
+        for robot in &self.station.robots {
+            let draw_params = DrawParam::default().dest([robot.position.0 as f32 * tile_size, robot.position.1 as f32 * tile_size]);
             graphics::draw(ctx, &self.robot_image, draw_params)?;
+
+            
+            let robot_info = format!("ID: {}, Energy: {}, Module: {:?}, Behavior: {:?}", robot.id, robot.energy, robot.module, robot.behavior);
+            let text = graphics::Text::new(robot_info);
+            let position = [robot.position.0 as f32 * tile_size, robot.position.1 as f32 * tile_size + 32.0];
+            graphics::draw(ctx, &text, (position, 0.0, graphics::Color::WHITE))?;
         }
 
         graphics::present(ctx)
@@ -89,7 +118,7 @@ impl event::EventHandler<ggez::GameError> for MapMainState {
 }
 
 fn main() -> GameResult<()> {
-    // Charger les ressources (optionnel)
+    
     let resource_dir = if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
         let mut path = path::PathBuf::from(manifest_dir);
         path.push("resources");
