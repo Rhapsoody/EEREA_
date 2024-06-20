@@ -1,102 +1,50 @@
-# Architecture Decision Record (ADR) template <!-- Replace with ADR title -->
+# ADR pour la Version 0.1
 
-This is a template for EdgeX Foundry ADR.
+**Titre**: Projet EEREA - EFREI Paris - M2 Dev Manager FullStack
 
-Source: https://docs.edgexfoundry.org/2.3/design/adr/template/
+**Date**: 21/06/2024
 
+## Contexte
+Dans le cadre de nos coours au sein d'EFREI Paris, nous avons eu à mener un projet en Rust qui vise à simuler une collecte de ressources en essaim sur une carte 2D par des robots. 
+La version 0.1 vise à établir les bases fonctionnelles du projet avec les fonctionnalités suivantes :
+- Génération procédurale de la carte avec des obstacles et des ressources.
+- Création de robots basiques avec des modules génériques.
+- Exploration basique de la carte par les robots.
+- Première implémentation d’une interface utilisateur avec `ggez` pour visualiser la carte et le mouvement des robots.
 
-### Submitters
+## Décision
+1. **Technologie**:
+   -  Le langage de programmation Rust pour sa sécurité de mémoire et ses performances.
+   -  La bibliothèque `ggez` pour l'interface graphique afin de visualiser la carte et les robots.
+   -  Le bruit de Perlin pour la génération procédurale des obstacles sur la carte.
 
-List ADR submitters.
+2. **Carte**:
+   - La carte est représentée en 2D avec des tuiles.
+   - Les bords de la carte sont définis avec des obstacles.
+   - Les obstacles et les ressources sont générés de manière procédurale en utilisant une fonction de bruit Perlin.
+   - Trois types de ressources sont définis : énergie, minerais, lieux d'intérêt scientifique.
 
-Format:
+3. **Robots**:
+   - Les robots sont modélisés de manière modulaire avec des modules spécialisés pour l'analyse, le forage et l'imagerie.
+   - Les robots ont trois comportements principaux : exploration, collecte de ressources, et intérêt scientifique.
+   - Les robots se déplacent de manière aléatoire sur la carte en évitant les obstacles.
 
-- Name (Organization)
+4. **Station**:
+   - La station centrale est initialisée sur une tuile vide (ni obstacle, ni ressource).
+   - La station gère l'énergie et recharge les robots lorsqu'ils retournent à la station.
+   - La station peut créer de nouveaux robots lorsque suffisamment d'énergie est disponible.
 
+5. **Interface Utilisateur**:
+   - Utilisation de `ggez` pour dessiner la carte, les obstacles, les ressources, les robots et la station.
+   - Affichage des informations des robots avec une taille de police augmentée pour une meilleure lisibilité.
 
-## Change Log
+## Conséquences
+- La structure du projet est maintenant en place, facilitant l'ajout de nouvelles fonctionnalités dans les versions futures.
+- La génération procédurale de la carte permet une grande variabilité et rejouabilité.
+- L'utilisation de `ggez` fournit une interface graphique simple et efficace, bien adaptée aux besoins du projet.
+- La modularité des robots permettra d'ajouter facilement de nouveaux modules et comportements dans les versions futures.
 
-List the changes to the document, incl. state, date, and PR URL.
+## Notes
+- Pour la version 0.2, nous prévoyons d'améliorer les modules des robots, d'implémenter un système de communication amélioré entre les robots et la station, et de gérer les conflits de données.
 
-State is one of: pending, approved, amended, deprecated.
-
-Date is an ISO 8601 (YYYY-MM-DD) string.
-
-PR is the pull request that submitted the change, including information such as the diff, contributors, and reviewers.
-
-Format:
-
-- \[Status of ADR e.g. approved, amended, etc.\]\(URL of pull request\) YYYY-MM-DD
-
-
-## Referenced Use Case(s)
-
-List all relevant use case / requirements documents.
-
-ADR requires at least one relevant, approved use case.
-
-Format:
-
-- \[Use Case Name\]\(URL\)
-
-Add explanations if the ADR is not addressing all the requirements of a use case.
-
-
-## Context
-
-Describe:
-
-- how the design is architecturally significant - warranting an ADR (versus simple issue and PR to fix a problem)
-
-- the high level design approach (details described in the proposed design below)
-
-
-## Proposed Design
-
-Details of the design (without getting into implementation where possible).
-
-Outline:
-
-- services/modules to be impacted (changed)
-
-- new services/modules to be added
-
-- model and DTO impact (changes/additions/removals)
-
-- API impact (changes/additions/removals)
-
-- general configuration impact (establishment of new sections, changes/additions/removals)
-
-- devops impact
-
-
-## Considerations
-
-Document alternatives, concerns, ancillary or related issues, questions that arose in debate of the ADR. 
-
-Indicate if/how they were resolved or mollified.
-
-
-## Decision
-
-Document any agreed upon important implementation detail, caveats, future considerations, remaining or deferred design issues.
-
-Document any part of the requirements not satisfied by the proposed design.
-
-
-## Other Related ADRs
-
-List any relevant ADRs - such as a design decision for a sub-component of a feature, a design deprecated as a result of this design, etc.. 
-
-Format:
-
-- \[ADR Title\]\(URL\) - Relevance
-
-
-## References
-
-List additional references.
-
-Format:
-
-- \[Title\]\(URL\)
+**Auteurs**: AGONGLO Shalom, MILLO Chelsey, SUTHARSAN Maanuja, WILLEKENS Elise
