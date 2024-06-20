@@ -11,10 +11,10 @@ pub struct Station {
 }
 
 #[derive(Debug)]
-struct KnownTile {
-    x: usize,
-    y: usize,
-    timestamp: u64,
+pub struct KnownTile {
+    pub x: usize,
+    pub y: usize,
+    pub timestamp: u64,
 }
 
 impl Station {
@@ -47,6 +47,8 @@ impl Station {
             }
         }
     }
+
+    
 
     // la station doit pouvoir créer des robots 
     pub fn create_robot(&mut self, id: usize, position: (usize, usize), module: Module, behavior: Behavior) -> Robot {

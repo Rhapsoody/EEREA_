@@ -24,7 +24,7 @@ impl Map {
         let mut rand = rand::rngs::StdRng::seed_from_u64(seed);
         let mut tiles = vec![vec![Tile::new(false, TileContent::Empty); width]; height];
 
-        let perlin = Perlin::new(8);
+        let perlin = Perlin::new(10);
 
         // Bordures comme obstacles
         for x in 0..width {
@@ -37,10 +37,10 @@ impl Map {
             tiles[y][width - 1] = Tile::new(false, TileContent::Obstacle);
         }
 
-        
+        // Génération aléatoire des obstacles et des ressources
         for y in 1..height - 1 {
             for x in 1..width - 1 {
-                let perlin_noise = perlin.get([x as f64 / 15.0 as f64, y as f64 / 12.0 as f64]);
+                let perlin_noise = perlin.get([x as f64 / 5.0, y as f64 / 5.0]); // Ajustement de l'échelle
                 if perlin_noise > 0.5 {
                     tiles[y][x] = Tile::new(false, TileContent::Obstacle);
                 } else {
