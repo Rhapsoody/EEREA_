@@ -37,10 +37,9 @@ impl Map {
             tiles[y][width - 1] = Tile::new(false, TileContent::Obstacle);
         }
 
-        // Génération aléatoire des obstacles et des ressources
         for y in 1..height - 1 {
             for x in 1..width - 1 {
-                let perlin_noise = perlin.get([x as f64 / 5.0, y as f64 / 5.0]); // Ajustement de l'échelle
+                let perlin_noise = perlin.get([x as f64 / 5.0, y as f64 / 5.0]); 
                 if perlin_noise > 0.5 {
                     tiles[y][x] = Tile::new(false, TileContent::Obstacle);
                 } else {

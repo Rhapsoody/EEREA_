@@ -1,49 +1,70 @@
-// Importer les modules du crate
-use eerea::tile::{Tile, TileContent, Resource};
 use eerea::map::Map;
+use eerea::tile::{TileContent, Resource};
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[test]
+fn test_generate_tiles() {
+    let map = Map::new(10, 10, 1);
+    assert_eq!(map.width, 10);
+    assert_eq!(map.height, 10);
+}
 
-    #[test]
-    fn test_tile_content() {
-        let obstacle_tile = Tile::new(false, TileContent::Obstacle);
-        let resource_tile = Tile::new(false, TileContent::Resource(Resource::Energy));
-        let empty_tile = Tile::new(false, TileContent::Empty);
+#[test]
+fn test_check_bounds() {
+    let map = Map::new(10, 10, 1);
+    assert!(map.check_bounds(0, 0));
+    assert!(map.check_bounds(9, 9));
+    assert!(!map.check_bounds(10, 10));
+}
 
-        assert!(matches!(obstacle_tile.content, TileContent::Obstacle));
-        assert!(matches!(resource_tile.content, TileContent::Resource(Resource::Energy)));
-        assert!(matches!(empty_tile.content, TileContent::Empty));
+#[test]
+fn test_is_empty() {
+    let map = Map::new(10, 10, 1);
+    assert!(!map.is_empty(0, 0)); 
+}
+
+#[test]
+fn test_throw_resource_at() {
+    let mut map = Map::new(10, 10, 1);
+    map.throw_resource_at(1, 1, Resource::Energy);
+    if let Some(tile) = map.tile_at(1, 1) {
+        assert_eq!(tile.content, TileContent::Resource(Resource::Energy));
+    } else {
+        panic!("Tile not found");
     }
+}
 
-    #[test]
-    fn test_map_generation() {
-        let map = Map::new(10, 10, 42);
+#[test]
+fn test_tile_at() {
+    let map = Map::new(10, 10, 1);
+    if let Some(tile) = map.tile_at(2, 2) {
+        assert_eq!(tile.content, TileContent::Empty); 
+    } else {
+        panic!("Tile not found");
+    }
+}
 
-        // Vérifier les bordures
-        for x in 0..10 {
-            assert!(matches!(map.tiles[0][x].content, TileContent::Obstacle));
-            assert!(matches!(map.tiles[9][x].content, TileContent::Obstacle));
-        }
+#[test]
+fn test_tile_at_mut() {
+    let mut map = Map::new(10, 10, 1);
+    if let Some(tile) = map.tile_at_mut(1, 1) {
+        tile.content = TileContent::Obstacle;
+    }
+    if let Some(tile) = map.tile_at(1, 1) {
+        assert_eq!(tile.content, TileContent::Obstacle);
+    } else {
+        panic!("Tile not found");
+    }
+}
 
-        for y in 0..10 {
-            assert!(matches!(map.tiles[y][0].content, TileContent::Obstacle));
-            assert!(matches!(map.tiles[y][9].content, TileContent::Obstacle));
-        }
-
-        // Vérifier les tuiles internes
-        for y in 1..9 {
-            for x in 1..9 {
-                let content = &map.tiles[y][x].content;
-                match content {
-                    TileContent::Obstacle => {},
-                    TileContent::Resource(resource) => match resource {
-                        Resource::Energy | Resource::Ore | Resource::PlaceOfInterest => {},
-                    },
-                    TileContent::Empty => {},
-                }
-            }
-        }
+#[test]
+fn test_retrieve_resource_at() {
+    let mut map = Map::new(10, 10, 1);
+    map.throw_resource_at(1, 1, Resource::Energy);
+    let resource = map.retrieve_resource_at(1, 1);
+    assert_eq!(resource, Some(Resource::Energy));
+    if let Some(tile) = map.tile_at(1, 1) {
+        assert_eq!(tile.content, TileContent::Empty);
+    } else {
+        panic!("Tile not found");
     }
 }

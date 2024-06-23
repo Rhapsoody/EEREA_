@@ -67,7 +67,11 @@ impl MapMainState {
         let mut robots_to_refill = vec![];
 
         for robot in &mut self.station.robots {
-            robot.perform_action(&mut self.map, self.station.position);
+            if robot.energy == 0 {
+                robot.move_towards_goal(&self.map, self.station.position);
+            } else {
+                robot.perform_action(&mut self.map, self.station.position);
+            }
             if robot.position == self.station.position {
                 robots_to_refill.push(robot.id);
             }
@@ -190,3 +194,4 @@ fn main() -> GameResult<()> {
     let game = MapMainState::new(&mut ctx)?;
     event::run(ctx, event_loop, game)
 }
+

@@ -18,3 +18,22 @@
 
 ### Enhancements
 - Augmentation de la taille de la police pour les informations des robots pour une meilleure lisibilité.
+
+
+# Changelog
+
+## Version 0.2
+
+### Features
+- Optimisation des déplacements des robots en utilisant l'algorithme de recherche en largeur (BFS).
+- Ajout de la fonction `move_towards_goal` pour les déplacements des robots vers des objectifs spécifiques.
+- Ajout de tests unitaires pour les modules `robot`, `map`, `tile`, et `station`.
+- Vérification de l'initialisation correcte des tuiles, de la station, et de la gestion de l'énergie par les robots.
+- Mise en place de fichiers de tests séparés pour chaque module, garantissant la robustesse du système.
+
+
+### Enhancements
+- Amélioration de la fiabilité du système en ajoutant des tests unitaires.
+- Simplification de la gestion des comportements des robots pour une meilleure maintenabilité.
+- Préparation du terrain pour des fonctionnalités plus complexes dans les futures versions.
+
