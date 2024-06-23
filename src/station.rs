@@ -1,6 +1,6 @@
 use crate::map::Map;
 use crate::robot::{Robot, Module, Behavior};
-
+use std::sync::mpsc::Sender;
 
 #[derive(Debug)]
 pub struct Station {
@@ -48,11 +48,9 @@ impl Station {
         }
     }
 
-    
-
     // la station doit pouvoir créer des robots 
-    pub fn create_robot(&mut self, id: usize, position: (usize, usize), module: Module, behavior: Behavior) -> Robot {
-        let robot = Robot::new(id, position, 100, module, behavior);
+    pub fn create_robot(&mut self, id: usize, position: (usize, usize), module: Module, behavior: Behavior, tx: Sender<(usize, (usize, usize))>) -> Robot {
+        let robot = Robot::new(id, position, 100, module, behavior, Some(tx));
         self.robots.push(robot.clone());
         robot
     }

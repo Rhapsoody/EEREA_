@@ -1,11 +1,11 @@
 use std::time::{SystemTime, UNIX_EPOCH};
-
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use crate::map::Map;
 use crate::tile::TileContent;
+use std::sync::mpsc::Sender;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive( Debug, Clone)]
 pub struct Robot {
     pub id: usize,
     pub position: (usize, usize),
@@ -13,6 +13,7 @@ pub struct Robot {
     pub module: Module,
     pub behavior: Behavior,
     pub known_tiles: Vec<(usize, usize)>,
+    pub tx: Option<Sender<(usize, (usize, usize))>>, // Ajout du Sender
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -30,17 +31,19 @@ pub enum Behavior {
 }
 
 impl Robot {
-    pub fn new(id: usize, position: (usize, usize), energy: u32, module: Module, behavior: Behavior) -> Self {
+    pub fn new(id: usize, position: (usize, usize), energy: u32, module: Module, behavior: Behavior, tx: Option<Sender<(usize, (usize, usize))>>) -> Self {
         Self {
             id,
             position,
             energy,
             module,
             behavior,
-            known_tiles: vec![]
+            known_tiles: vec![],
+            tx,
         }
     }
-    // on gere les comportements des petits robots
+
+    // Gère les comportements des robots
     pub fn perform_action(&mut self, map: &mut Map, station_position: (usize, usize)) {
         if self.energy == 0 {
             println!("Robot {} has no energy and needs to recharge", self.id);
@@ -57,7 +60,8 @@ impl Robot {
             Behavior::ScientificInterest => self.investigate(map),
         }
 
-        self.energy -= 1; // et bim on consomme de l'energie
+        self.energy -= 1; // Consomme de l'énergie pour chaque action
+        self.send_position(); // Envoie la position après chaque action
     }
 
     fn explore(&mut self, map: &mut Map) {
@@ -79,12 +83,11 @@ impl Robot {
         self.move_randomly(map);
         // self.analyze();
     }
-    
-    
+
     // fn analyze(&self) {
     //     if let Module::Analysis = self.module {
     //         println!("Robot {} analyzing at position {:?}", self.id, self.position);
-    //         
+    //         // Logique d'analyse spécifique
     //     }
     // }
 
@@ -100,7 +103,7 @@ impl Robot {
     // fn capture_image(&self) {
     //     if let Module::Imaging = self.module {
     //         println!("Robot {} capturing image at position {:?}", self.id, self.position);
-    //         
+    //         // Logique de capture d'image spécifique
     //     }
     // }
 
@@ -119,12 +122,11 @@ impl Robot {
         }
     }
 
-    
     fn move_randomly(&mut self, map: &Map) {
         let mut rng = rand::thread_rng();
         let directions = [(0, 1), (1, 0), (0, -1), (-1, 0)];
 
-        for _ in 0..4 {  
+        for _ in 0..4 {
             let (dx, dy) = directions[rng.gen_range(0..4)];
             let new_x = (self.position.0 as isize + dx).clamp(0, (map.width - 1) as isize) as usize;
             let new_y = (self.position.1 as isize + dy).clamp(0, (map.height - 1) as isize) as usize;
@@ -151,7 +153,13 @@ impl Robot {
     }
 
     pub fn refill_energy(&mut self) {
-        self.energy = 80; 
+        self.energy = 80;
         println!("Robot {} is recharged", self.id);
+    }
+
+    fn send_position(&self) {
+        if let Some(ref tx) = self.tx {
+            tx.send((self.id, self.position)).unwrap();
+        }
     }
 }
